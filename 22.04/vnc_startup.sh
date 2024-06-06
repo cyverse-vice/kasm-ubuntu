@@ -2,6 +2,14 @@
 ### every exit != 0 fails the script
 set -e
 
+if [ -f /data-store/iplant/home/$IPLANT_USER/.gitconfig ]; then
+  cp /data-store/iplant/home/$IPLANT_USER/.gitconfig ~/
+fi
+
+if [ -d /data-store/iplant/home/$IPLANT_USER/.ssh ]; then
+  cp -r /data-store/iplant/home/$IPLANT_USER/.ssh ~/
+fi
+
 no_proxy="localhost,127.0.0.1"
 
 if [ -f /usr/bin/kasm-profile-sync ]; then
