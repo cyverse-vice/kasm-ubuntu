@@ -46,14 +46,14 @@ ARG PRIV_CMDS='ALL'
 RUN usermod -aG sudo kasm-user && \
     echo "$LOCAL_USER ALL=NOPASSWD: $PRIV_CMDS" >> /etc/sudoers
 
-RUN chmod +x /dockerstartup/vnc_startup.sh
-
 RUN apt-get update && \
     apt-get install -y gnome-session gnome-shell gnome-control-center gnome-terminal gnome-system-monitor gnome-tweak-tool --no-install-recommends && \
     apt-get clean
 
 COPY kasmvnc_defaults.yaml /usr/share/kasmvnc/kasmvnc_defaults.yaml
 COPY vnc_startup.sh /dockerstartup/vnc_startup.sh
+
+RUN chmod +x /dockerstartup/vnc_startup.sh
 #COPY sudoers /etc/sudoers
 
 RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh && \
