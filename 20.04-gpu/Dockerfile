@@ -36,9 +36,9 @@ ARG PRIV_CMDS='ALL'
 # ARG PRIV_CMDS='/bin/ch*,/bin/cat,/bin/gunzip,/bin/tar,/bin/mkdir,/bin/ps,/bin/mv,/bin/cp,/usr/bin/apt*,/usr/bin/pip*,/bin/yum,/bin/snap,/bin/curl,/bin/tee,/opt'
     
 RUN usermod -aG sudo kasm-user && \
-    echo "$LOCAL_USER ALL=NOPASSWD: $PRIV_CMDS" >> /etc/sudoers
+    echo "$LOCAL_USER ALL=NOPASSWD: $PRIV_CMDS" >> /etc/sudoersq
 
-USER kasm-user
+# USER kasm-user
 
 # Add conda
 RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh && \
@@ -58,8 +58,17 @@ ENV PATH=/home/kasm-user/miniconda3/bin:$PATH
 RUN conda install -c conda-forge mamba -y
 
 RUN sudo apt-get update && \
-    sudo apt-get install -y gnome-session gnome-shell gnome-control-center gnome-terminal gnome-system-monitor gnome-tweak-tool --no-install-recommends && \
+    sudo apt-get upgrade && \
+    sudo apt-get install -y gnome-session gnome-shell gnome-control-center gnome-terminal gnome-system-monitor gnome-tweak-tool gcc make linux-headers-$(uname -r) --no-install-recommends && \
     sudo apt-get clean
+
+# Install NVIDIA dependencies
+RUN sudo add-apt-repository ppa:graphics-drivers/ppa && \
+    sudo apt update -y && \
+    sudo apt install ubuntu-drivers-common -y && \
+    sudo apt dist-upgrade  
+
+RUN sudo apt install nvidia-cuda-toolkit -y
 
 # RUN apt-get install libnvidia-compute-535
 
@@ -76,7 +85,7 @@ RUN echo "conda activate base" >> ~/.bashrc && \
 #    sudo apt-get update && \
 #    sudo apt-get -y install cuda-toolkit-12-5
 
-RUN mamba install -c pytorch -c nvidia -c conda-forge python==3.10.* pytorch torchvision torchaudio pytorch-cuda=12.4 pytorch-lightning cudatoolkit cuda mlflow -y
+# RUN mamba install -c pytorch -c nvidia -c conda-forge python==3.10.* pytorch torchvision torchaudio pytorch-cuda=12.4 pytorch-lightning cudatoolkit cuda mlflow -y
 # RUN mamba install -c conda-forge mlflow pytables==3.8.0 -y
 
 COPY kasmvnc_defaults.yaml /usr/share/kasmvnc/kasmvnc_defaults.yaml
@@ -88,5 +97,7 @@ RUN conda clean --all -y
 RUN sudo chown -R ${LOCAL_USER} /home/kasm-user/miniconda3
 
 RUN sudo chmod +x /dockerstartup/vnc_startup.sh
+
+USER kasm-user
 
 ENTRYPOINT [ "/dockerstartup/vnc_startup.sh" ]
