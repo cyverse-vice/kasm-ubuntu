@@ -73,8 +73,12 @@ RUN conda install -c conda-forge mamba -y
 RUN mamba install -c pytorch -c nvidia -c conda-forge python==3.10.* pytorch torchvision torchaudio pytorch-cuda=12.1 pytorch-lightning cudatoolkit cuda -y
 RUN mamba install -c conda-forge mlflow pytables==3.8.0 -y
 
-RUN pip install -U -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-22.04 wxPython
+RUN pip install -U -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-20.04 wxPython
 RUN pip install "deeplabcut[gui,modelzoo,tf]"
+
+RUN echo "conda activate base" >> ~/.bashrc && \
+    /bin/bash -c "conda init"
+#    /bin/bash -c "conda activate base"
 
 USER kasm-user
 
