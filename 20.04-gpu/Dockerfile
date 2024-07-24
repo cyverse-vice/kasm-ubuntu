@@ -38,16 +38,18 @@ ARG PRIV_CMDS='ALL'
 RUN usermod -aG sudo kasm-user && \
     echo "$LOCAL_USER ALL=NOPASSWD: $PRIV_CMDS" >> /etc/sudoers
 
+USER kasm-user
+
 # Add conda
 RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh && \
     /bin/bash ~/miniconda.sh -b -p /home/kasm-user/miniconda3 && \
     rm ~/miniconda.sh
 
-RUN ln -s /home/kasm-user/miniconda3/etc/profile.d/conda.sh /etc/profile.d/conda.sh
+RUN sudo ln -s /home/kasm-user/miniconda3/etc/profile.d/conda.sh /etc/profile.d/conda.sh
 
 RUN echo ". /home/kasm-user/miniconda3/etc/profile.d/conda.sh" >> /home/${LOCAL_USER}/.bashrc && \
     echo ". /home/kasm-user/miniconda3/etc/profile.d/conda.sh" >> /home/${LOCAL_USER}/.zshrc && \    
-    chown -R ${LOCAL_USER}:${LOCAL_USER} /home/kasm-user/miniconda3
+    sudo chown -R ${LOCAL_USER}:${LOCAL_USER} /home/kasm-user/miniconda3
 
 # Add conda to PATH
 ENV PATH=/home/kasm-user/miniconda3/bin:$PATH
@@ -55,11 +57,11 @@ ENV PATH=/home/kasm-user/miniconda3/bin:$PATH
 # Install dependencies
 RUN conda install -c conda-forge mamba -y
 
-RUN apt-get update && \
-    apt-get install -y gnome-session gnome-shell gnome-control-center gnome-terminal gnome-system-monitor gnome-tweak-tool --no-install-recommends && \
-    apt-get clean
+RUN sudo apt-get update && \
+    sudo apt-get install -y gnome-session gnome-shell gnome-control-center gnome-terminal gnome-system-monitor gnome-tweak-tool --no-install-recommends && \
+    sudo apt-get clean
 
-RUN apt-get install libnvidia-compute-535
+# RUN apt-get install libnvidia-compute-535
 
 # Initialize conda
 RUN echo "conda activate base" >> ~/.bashrc && \
@@ -83,10 +85,8 @@ COPY vnc_startup.sh /dockerstartup/vnc_startup.sh
 
 # Clean conda and set right privs
 RUN conda clean --all -y
-RUN chown -R ${LOCAL_USER} /home/kasm-user/miniconda3
+RUN sudo chown -R ${LOCAL_USER} /home/kasm-user/miniconda3
 
-RUN chmod +x /dockerstartup/vnc_startup.sh
-
-USER kasm-user
+RUN sudo chmod +x /dockerstartup/vnc_startup.sh
 
 ENTRYPOINT [ "/dockerstartup/vnc_startup.sh" ]
