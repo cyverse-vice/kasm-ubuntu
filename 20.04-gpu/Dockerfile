@@ -1,4 +1,4 @@
-FROM kasmweb/desktop-deluxe:1.15.0-rolling
+FROM kasmweb/ubuntu-focal-desktop:1.14.0-rolling
 
 # create ~/data-store for CSI driver fuse mount
 WORKDIR /home/kasm-user/data-store
@@ -70,13 +70,13 @@ RUN sudo add-apt-repository ppa:graphics-drivers/ppa && \
 
 RUN wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/cuda-keyring_1.1-1_all.deb
 RUN sudo dpkg -i cuda-keyring_1.1-1_all.deb
-RUN sudo apt-get update
-RUN sudo apt-get install cuda-toolkit-12-4 -y
+# RUN sudo apt-get update
+# RUN sudo apt-get install cuda-toolkit-12-2 -y
 # RUN sudo apt install cuda -y
 # RUN sudo apt install nvidia-cuda-toolkit -y
 # RUN sudo apt install nvidia-graphics-drivers-550 -y
 # RUN sudo apt install nvidia-driver-550-open -y
-#RUN sudo apt install nvidia-compute-535 -y
+RUN sudo apt install nvidia-driver-535 -y
 # Initialize conda
 RUN echo "conda activate base" >> ~/.bashrc && \
     /bin/bash -c "conda init"
