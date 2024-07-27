@@ -57,8 +57,8 @@ ENV PATH=/home/kasm-user/miniconda3/bin:$PATH
 # Install dependencies
 RUN conda install -c conda-forge mamba -y
 
-RUN sudo apt-get update && \
-    sudo apt-get upgrade && \
+RUN sudo apt-get update -y && \
+    sudo apt-get upgrade -y && \
     sudo apt-get install -y gnome-session gnome-shell gnome-control-center gnome-terminal gnome-system-monitor gnome-tweak-tool gcc make linux-headers-$(uname -r) --no-install-recommends && \
     sudo apt-get clean
 
@@ -68,10 +68,15 @@ RUN sudo add-apt-repository ppa:graphics-drivers/ppa && \
     sudo apt install ubuntu-drivers-common -y && \
     sudo apt dist-upgrade  
 
-RUN sudo apt install nvidia-cuda-toolkit -y
-
-# RUN apt-get install libnvidia-compute-535
-
+RUN wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/cuda-keyring_1.1-1_all.deb
+RUN sudo dpkg -i cuda-keyring_1.1-1_all.deb
+RUN sudo apt-get update
+RUN sudo apt-get install cuda-toolkit-12-4 -y
+# RUN sudo apt install cuda -y
+# RUN sudo apt install nvidia-cuda-toolkit -y
+# RUN sudo apt install nvidia-graphics-drivers-550 -y
+# RUN sudo apt install nvidia-driver-550-open -y
+#RUN sudo apt install nvidia-compute-535 -y
 # Initialize conda
 RUN echo "conda activate base" >> ~/.bashrc && \
     /bin/bash -c "conda init"
@@ -85,7 +90,8 @@ RUN echo "conda activate base" >> ~/.bashrc && \
 #    sudo apt-get update && \
 #    sudo apt-get -y install cuda-toolkit-12-5
 
-# RUN mamba install -c pytorch -c nvidia -c conda-forge python==3.10.* pytorch torchvision torchaudio pytorch-cuda=12.4 pytorch-lightning cudatoolkit cuda mlflow -y
+# RUN mamba install -c pytorch -c nvidia -c conda-forge python==3.10.* pytorch torchvision torchaudio pytorch-cuda  pytorch-lightning cudatoolkit cuda  mkl==2024.2.* -y
+
 # RUN mamba install -c conda-forge mlflow pytables==3.8.0 -y
 
 COPY kasmvnc_defaults.yaml /usr/share/kasmvnc/kasmvnc_defaults.yaml
@@ -98,6 +104,6 @@ RUN sudo chown -R ${LOCAL_USER} /home/kasm-user/miniconda3
 
 RUN sudo chmod +x /dockerstartup/vnc_startup.sh
 
-USER kasm-user
+# USER kasm-user
 
 ENTRYPOINT [ "/dockerstartup/vnc_startup.sh" ]
