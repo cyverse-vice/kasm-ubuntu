@@ -90,6 +90,7 @@ RUN echo "conda activate base" >> ~/.bashrc && \
 #    sudo apt-get update && \
 #    sudo apt-get -y install cuda-toolkit-12-5
 
+RUN mamba install -c pytorch -c nvidia -c conda-forge python==3.10.* pytorch torchvision torchaudio pytorch-cuda==12.1  pytorch-lightning cudatoolkit cuda -y 
 # RUN mamba install -c pytorch -c nvidia -c conda-forge python==3.10.* pytorch torchvision torchaudio pytorch-cuda  pytorch-lightning cudatoolkit cuda  mkl==2024.2.* -y
 
 # RUN mamba install -c conda-forge mlflow pytables==3.8.0 -y
