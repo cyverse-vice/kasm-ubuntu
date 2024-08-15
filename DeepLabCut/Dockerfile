@@ -1,4 +1,4 @@
-FROM kasmweb/desktop-deluxe:1.15.0-rolling
+FROM kasmweb/ubuntu-focal-desktop:1.14.0-rolling
 
 # create ~/data-store for CSI driver fuse mount
 WORKDIR /home/kasm-user/data-store
@@ -11,15 +11,7 @@ USER root
 
 # Install a few dependencies for goCommands, text editing, and monitoring instances
 RUN apt update && \
-    apt install -y lsb-release apt-transport-https curl libfreetype6-dev pkg-config libx11-dev gcc less software-properties-common apt-utils glances htop nano
-
-RUN apt-get install build-essential gfortran libgtk-3-dev -y
-
-# Install nvfortran
-RUN curl https://developer.download.nvidia.com/hpc-sdk/ubuntu/DEB-GPG-KEY-NVIDIA-HPC-SDK | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-hpcsdk-archive-keyring.gpg && \
-    echo 'deb [signed-by=/usr/share/keyrings/nvidia-hpcsdk-archive-keyring.gpg] https://developer.download.nvidia.com/hpc-sdk/ubuntu/amd64 /' | sudo tee /etc/apt/sources.list.d/nvhpc.list && \
-    sudo apt-get update -y && \
-    sudo apt-get install -y nvhpc-24-5 
+    apt install -y lsb-release apt-transport-https curl libfreetype6-dev pkg-config libx11-dev gcc less software-properties-common apt-utils glances htop nano 
 
 # Install Go
 RUN wget -q -c https://dl.google.com/go/go1.20.5.linux-amd64.tar.gz -O - | tar -xz -C /usr/local
@@ -44,42 +36,73 @@ ARG PRIV_CMDS='ALL'
 # ARG PRIV_CMDS='/bin/ch*,/bin/cat,/bin/gunzip,/bin/tar,/bin/mkdir,/bin/ps,/bin/mv,/bin/cp,/usr/bin/apt*,/usr/bin/pip*,/bin/yum,/bin/snap,/bin/curl,/bin/tee,/opt'
     
 RUN usermod -aG sudo kasm-user && \
-    echo "$LOCAL_USER ALL=NOPASSWD: $PRIV_CMDS" >> /etc/sudoers
+    echo "$LOCAL_USER ALL=NOPASSWD: $PRIV_CMDS" >> /etc/sudoersq
 
-RUN apt-get update && \
-    apt-get install -y gnome-session gnome-shell gnome-control-center gnome-terminal gnome-system-monitor gnome-tweak-tool --no-install-recommends && \
-    apt-get clean
+# USER kasm-user
+
+# Add conda
+RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh && \
+    /bin/bash ~/miniconda.sh -b -p /home/kasm-user/miniconda3 && \
+    rm ~/miniconda.sh
+
+RUN sudo ln -s /home/kasm-user/miniconda3/etc/profile.d/conda.sh /etc/profile.d/conda.sh
+
+RUN echo ". /home/kasm-user/miniconda3/etc/profile.d/conda.sh" >> /home/${LOCAL_USER}/.bashrc && \
+    echo ". /home/kasm-user/miniconda3/etc/profile.d/conda.sh" >> /home/${LOCAL_USER}/.zshrc && \    
+    sudo chown -R ${LOCAL_USER}:${LOCAL_USER} /home/kasm-user/miniconda3
+
+# Add conda to PATH
+ENV PATH=/home/kasm-user/miniconda3/bin:$PATH
+
+# Install dependencies
+RUN conda install -c conda-forge mamba -y
+
+RUN sudo apt-get update -y && \
+    sudo apt-get upgrade -y && \
+    sudo apt-get install -y gnome-session gnome-shell gnome-control-center gnome-terminal gnome-system-monitor gnome-tweak-tool gcc make linux-headers-$(uname -r) --no-install-recommends && \
+    sudo apt-get clean
+
+# Install NVIDIA dependencies
+RUN sudo add-apt-repository ppa:graphics-drivers/ppa && \
+    sudo apt update -y && \
+    sudo apt install ubuntu-drivers-common -y && \
+    sudo apt dist-upgrade  
+
+RUN wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/cuda-keyring_1.1-1_all.deb
+RUN sudo dpkg -i cuda-keyring_1.1-1_all.deb
+RUN sudo apt install nvidia-driver-535 -y
+# RUN sudo apt-get install tensorrt -y
+
+# RUN sudo apt update # && sudo apt upgrade -y # updating doesn't help
+
+# Initialize conda
+RUN echo "conda activate base" >> ~/.bashrc && \
+    /bin/bash -c "conda init"
+
+RUN mamba install python=3.10.* jupyter nb_conda notebook ffmpeg pytables=3.8.0 -c conda-forge -y
+RUN pip install 'git+https://github.com/DeepLabCut/DeepLabCut.git@pytorch_dlc#egg=deeplabcut[gui,modelzoo,wandb]'
+# RUN mamba install tensorflow-gpu -c conda-forge -y
+# RUN mamba install python=3.10.* pytorch torchvision torchaudio pytorch-cuda=12.1 -c pytorch-nightly -c nvidia -c conda-forge -y
+# RUN mamba install -c pytorch -c nvidia -c conda-forge python==3.10.* pytorch torchvision torchaudio pytorch-cuda==12.1  pytorch-lightning cudatoolkit cuda -y 
+# RUN mamba install -c pytorch -c nvidia -c conda-forge python==3.10.* pytorch torchvision torchaudio pytorch-cuda  pytorch-lightning cudatoolkit cuda  mkl==2024.2.* -y
+
+# RUN mamba install -c conda-forge mlflow pytables==3.8.0 -y
+
+# RUN python -m pip install wheel && \
+#     python -m pip install --pre --upgrade tensorrt
+
+# RUN pip install tensorflow[and-cuda]
 
 COPY kasmvnc_defaults.yaml /usr/share/kasmvnc/kasmvnc_defaults.yaml
 COPY vnc_startup.sh /dockerstartup/vnc_startup.sh
-
-RUN chmod +x /dockerstartup/vnc_startup.sh
 #COPY sudoers /etc/sudoers
 
-RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh && \
-    /bin/bash ~/miniconda.sh -b -p /opt/conda && \
-    rm ~/miniconda.sh && \
-    ln -s /opt/conda/etc/profile.d/conda.sh /etc/profile.d/conda.sh && \
-    echo ". /opt/conda/etc/profile.d/conda.sh" >> /home/${LOCAL_USER}/.bashrc && \
-    echo ". /opt/conda/etc/profile.d/conda.sh" >> /home/${LOCAL_USER}/.zshrc && \
-    chown -R ${LOCAL_USER}:${LOCAL_USER} /opt/conda
+# Clean conda and set right privs
+RUN conda clean --all -y
+RUN sudo chown -R ${LOCAL_USER} /home/kasm-user/miniconda3
 
-# Add conda to path
-ENV PATH=/opt/conda/bin:$PATH
+RUN sudo chmod +x /dockerstartup/vnc_startup.sh
 
-# Install torch GPU dependencies
-RUN conda install -c conda-forge mamba -y
-
-RUN mamba install -c pytorch -c nvidia -c conda-forge python==3.10.* pytorch torchvision torchaudio pytorch-cuda=12.1 pytorch-lightning cudatoolkit cuda -y
-RUN mamba install -c conda-forge mlflow pytables==3.8.0 -y
-
-RUN pip install -U -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-20.04 wxPython
-RUN pip install "deeplabcut[gui,modelzoo,tf]"
-
-RUN echo "conda activate base" >> ~/.bashrc && \
-    /bin/bash -c "conda init"
-#    /bin/bash -c "conda activate base"
-
-USER kasm-user
+# USER kasm-user
 
 ENTRYPOINT [ "/dockerstartup/vnc_startup.sh" ]
