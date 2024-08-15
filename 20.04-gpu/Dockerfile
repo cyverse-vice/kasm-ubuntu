@@ -71,15 +71,15 @@ RUN sudo add-apt-repository ppa:graphics-drivers/ppa && \
 RUN wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/cuda-keyring_1.1-1_all.deb
 RUN sudo dpkg -i cuda-keyring_1.1-1_all.deb
 # RUN sudo apt-get update
-# RUN sudo apt-get install cuda-toolkit-12-2 -y
-# RUN sudo apt install cuda -y
+# RUN sudo apt-get install cuda-toolkit-12-2 -y # no work
+# RUN sudo apt-get install cuda -y # no work, NVML version mismatch
 # RUN sudo apt install nvidia-cuda-toolkit -y
 # RUN sudo apt install nvidia-graphics-drivers-550 -y
 # RUN sudo apt install nvidia-driver-550-open -y
 RUN sudo apt install nvidia-driver-535 -y
+# RUN sudo apt-get install tensorrt -y
 
-
-RUN sudo apt update # && sudo apt upgrade -y
+# RUN sudo apt update # && sudo apt upgrade -y # updating doesn't help
 
 # Initialize conda
 RUN echo "conda activate base" >> ~/.bashrc && \
@@ -94,12 +94,20 @@ RUN echo "conda activate base" >> ~/.bashrc && \
 #    sudo apt-get update && \
 #    sudo apt-get -y install cuda-toolkit-12-5
 
-
-RUN mamba install python=3.10.* pytorch torchvision torchaudio pytorch-cuda=12.1 -c pytorch-nightly -c nvidia -c conda-forge -y
+RUN mamba install python=3.10.* -c conda-forge -y
+# RUN mamba install python=3.10.* jupyter nb_conda notebook ffmpeg pytables=3.8.0 -c conda-forge -y
+# RUN pip install 'git+https://github.com/DeepLabCut/DeepLabCut.git@pytorch_dlc#egg=deeplabcut[gui,modelzoo,wandb]'
+# RUN mamba install tensorflow-gpu -c conda-forge -y
+# RUN mamba install python=3.10.* pytorch torchvision torchaudio pytorch-cuda=12.1 -c pytorch-nightly -c nvidia -c conda-forge -y
 # RUN mamba install -c pytorch -c nvidia -c conda-forge python==3.10.* pytorch torchvision torchaudio pytorch-cuda==12.1  pytorch-lightning cudatoolkit cuda -y 
 # RUN mamba install -c pytorch -c nvidia -c conda-forge python==3.10.* pytorch torchvision torchaudio pytorch-cuda  pytorch-lightning cudatoolkit cuda  mkl==2024.2.* -y
 
 # RUN mamba install -c conda-forge mlflow pytables==3.8.0 -y
+
+# RUN python -m pip install wheel && \
+#     python -m pip install --pre --upgrade tensorrt
+
+# RUN pip install tensorflow[and-cuda]
 
 COPY kasmvnc_defaults.yaml /usr/share/kasmvnc/kasmvnc_defaults.yaml
 COPY vnc_startup.sh /dockerstartup/vnc_startup.sh
