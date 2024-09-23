@@ -1,4 +1,4 @@
-FROM kasmweb/ubuntu-jammy-desktop:1.14.0-rolling
+FROM kasmweb/ubuntu-jammy-desktop:1.16.0
 
 # Build-time metadata as defined at http://label-schema.org
 ARG BUILD_DATE
@@ -162,6 +162,7 @@ ENV GRASS_SKIP_MAPSET_OWNER_CHECK 1
 
 # grant access to /usr/share/qgis to ${LOCAL_USER}
 RUN chown -R 1000:1000 /usr/share/qgis
+RUN chown -R 1000:1000 /home/kasm-user/.*
 
 # set XDG_RUNTIME_DIR for qgis
 RUN mkdir /tmp/runtime-user && chown -R 1000:1000 /tmp/runtime-user
