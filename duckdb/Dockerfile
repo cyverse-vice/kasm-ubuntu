@@ -56,4 +56,6 @@ COPY vnc_startup.sh /dockerstartup/vnc_startup.sh
 
 USER kasm-user
 
+RUN sudo chmod +x /dockerstartup/vnc_startup.sh
+
 ENTRYPOINT [ "/dockerstartup/vnc_startup.sh" ]
