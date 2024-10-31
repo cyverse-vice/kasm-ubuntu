@@ -140,6 +140,8 @@ RUN cd && \
 COPY CellProfilerLocal.cfg /home/kasm-user
 
 RUN chmod a+x /dockerstartup/vnc_startup.sh
+
+# adding right permissions
 RUN chmod -R a+wx /home/kasm-user/
 
 USER kasm-user
