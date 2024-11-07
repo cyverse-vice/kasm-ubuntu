@@ -147,3 +147,4 @@ RUN chmod -R a+wx /home/kasm-user/
 USER kasm-user
 
 ENTRYPOINT [ "/dockerstartup/vnc_startup.sh" ]
+
