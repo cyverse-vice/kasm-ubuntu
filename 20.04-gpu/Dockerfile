@@ -57,10 +57,14 @@ ENV PATH=/home/kasm-user/miniconda3/bin:$PATH
 # Install dependencies
 RUN conda install -c conda-forge mamba -y
 
-RUN sudo apt-get update -y && \
-    sudo apt-get upgrade -y && \
-    sudo apt-get install -y gnome-session gnome-shell gnome-control-center gnome-terminal gnome-system-monitor gnome-tweak-tool gcc make linux-headers-$(uname -r) --no-install-recommends && \
-    sudo apt-get clean
+# Update, upgrade, and install necessary packages
+RUN apt-get update -y && \
+    apt-get upgrade -y && \
+    apt-get install -y gnome-session gnome-shell gnome-control-center \
+                       gnome-terminal gnome-system-monitor gnome-tweak-tool \
+                       gcc make --no-install-recommends && \
+    apt-get install -y linux-headers-$(uname -r) || apt-get install -y linux-headers-generic && \
+    apt-get clean
 
 # Install NVIDIA dependencies
 RUN sudo add-apt-repository ppa:graphics-drivers/ppa && \
@@ -68,8 +72,16 @@ RUN sudo add-apt-repository ppa:graphics-drivers/ppa && \
     sudo apt install ubuntu-drivers-common -y && \
     sudo apt dist-upgrade  
 
-RUN wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/cuda-keyring_1.1-1_all.deb
-RUN sudo dpkg -i cuda-keyring_1.1-1_all.deb
+RUN apt-get update && \
+    apt-get install -y wget gnupg && \
+    wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/cuda-keyring_1.0-1_all.deb && \
+    dpkg -i cuda-keyring_1.0-1_all.deb && \
+    apt-get update
+RUN sudo apt-get install -y cuda-toolkit-12-2
+  
+# Add CUDA to PATH
+ENV PATH=/usr/local/cuda/bin:$PATH
+
 # RUN sudo apt-get update
 # RUN sudo apt-get install cuda-toolkit-12-2 -y # no work
 # RUN sudo apt-get install cuda -y # no work, NVML version mismatch
@@ -109,6 +121,9 @@ RUN mamba install python=3.10.* -c conda-forge -y
 
 # RUN pip install tensorflow[and-cuda]
 
+# install pyTorch
+RUN conda install pytorch torchvision torchaudio pytorch-cuda=12.1 -c pytorch -c nvidia -y
+
 COPY kasmvnc_defaults.yaml /usr/share/kasmvnc/kasmvnc_defaults.yaml
 COPY vnc_startup.sh /dockerstartup/vnc_startup.sh
 #COPY sudoers /etc/sudoers
@@ -121,4 +136,4 @@ RUN sudo chmod +x /dockerstartup/vnc_startup.sh
 
 # USER kasm-user
 
-ENTRYPOINT [ "/dockerstartup/vnc_startup.sh" ]
+ENTRYPOINT [ "/bin/bash" ]
