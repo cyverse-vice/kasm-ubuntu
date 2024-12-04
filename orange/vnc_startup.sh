@@ -368,6 +368,9 @@ profile_size_check &
 start_webcam
 start_printer
 
+# Start Orange
+/home/kasm-user/miniconda3/envs/orange/bin/orange-canvas
+
 STARTUP_COMPLETE=1
 
 conda init

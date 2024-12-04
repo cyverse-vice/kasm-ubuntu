@@ -25,6 +25,7 @@ RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86
     /bin/bash ~/miniconda.sh -b -p /home/kasm-user/miniconda3 && \
     rm ~/miniconda.sh
 
+# create symbolic link
 RUN sudo ln -s /home/kasm-user/miniconda3/etc/profile.d/conda.sh /etc/profile.d/conda.sh
 
 #RUN echo ". /home/kasm-user/miniconda3/etc/profile.d/conda.sh" >> /home/${LOCAL_USER}/.bashrc && \
@@ -54,8 +55,6 @@ ADD ./icons/orange.png /usr/share/backgrounds/images/orange.png
 ADD ./icons/orange.png .conda/share/orange3/orange.png
 ADD ./orange/orange-canvas.desktop /home/${LOCAL_USER}Desktop/orange-canvas.desktop
 
-#USER kasm-user
-
 # create conda environment for Orange
 COPY environment.yml /home/kasm-user/environment.yml
 RUN conda install -c conda-forge -y mamba && \
@@ -81,34 +80,28 @@ EXPOSE 6901
 COPY entry.sh /bin
 RUN echo 'set-option -g status off' >> ~/.tmux.conf
 
+# copy necessary files to container
 COPY kasmvnc_defaults.yaml /usr/share/kasmvnc/kasmvnc_defaults.yaml
 COPY vnc_startup.sh /dockerstartup/vnc_startup.sh
 
 # add iRODS iCommands to user profile as JSON
 RUN mkdir -p /home/kasm-user/.irods 
 
+# make vnc_startup executable
 RUN sudo chmod a+x /dockerstartup/vnc_startup.sh
 
+# install zsh
 RUN apt-get update && apt-get install -y zsh
 
-# Initialize Conda for zsh and activate the environment
-#RUN zsh -c "source /home/kasm-user/miniconda3/etc/profile.d/conda.sh && \
- #   . ~/.zshrc && \
-  #  conda activate orange"
-
+# create /home/kasm-user/.cache/Orange and set correct permissions
 RUN mkdir -p /home/kasm-user/.cache/Orange && \
     chown -R kasm-user:kasm-user /home/kasm-user/.cache
-
 RUN chmod -R 755 /home/kasm-user/.cache
+
+# set default shell for kasm-user to zsh
+RUN usermod -s /bin/zsh kasm-user
 
 USER kasm-user
 
-#RUN "bash" && \
-#  "conda init" && \
-#  "conda activate orange"
-
-SHELL ["/bin/bash"]
-CMD ["/bin/bash"]
-
-ENTRYPOINT ["/dockerstartup/vnc_startup.sh", "/bin/zsh", "-c", "source /home/kasm-user/miniconda3/etc/profile.d/conda.sh && conda activate orange" ]
+ENTRYPOINT ["/dockerstartup/vnc_startup.sh"]
 
