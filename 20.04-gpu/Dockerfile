@@ -1,4 +1,4 @@
-FROM kasmweb/ubuntu-focal-desktop:1.14.0-rolling
+FROM kasmweb/ubuntu-jammy-desktop:1.16.0
 
 # create ~/data-store for CSI driver fuse mount
 WORKDIR /home/kasm-user/data-store
@@ -77,52 +77,28 @@ RUN apt-get update && \
     wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/cuda-keyring_1.0-1_all.deb && \
     dpkg -i cuda-keyring_1.0-1_all.deb && \
     apt-get update
-RUN sudo apt-get install -y cuda-toolkit-12-2
+RUN sudo apt-get install -y cuda-toolkit-12-1
   
 # Add CUDA to PATH
 ENV PATH=/usr/local/cuda/bin:$PATH
+ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
 
-# RUN sudo apt-get update
-# RUN sudo apt-get install cuda-toolkit-12-2 -y # no work
-# RUN sudo apt-get install cuda -y # no work, NVML version mismatch
-# RUN sudo apt install nvidia-cuda-toolkit -y
-# RUN sudo apt install nvidia-graphics-drivers-550 -y
-# RUN sudo apt install nvidia-driver-550-open -y
-RUN sudo apt install nvidia-driver-535 -y
-# RUN sudo apt-get install tensorrt -y
-
-# RUN sudo apt update # && sudo apt upgrade -y # updating doesn't help
+RUN sudo apt install nvidia-driver-555 -y
 
 # Initialize conda
 RUN echo "conda activate base" >> ~/.bashrc && \
     /bin/bash -c "conda init"
 
-# RUN wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/cuda-ubuntu2004.pin && \
-#    sudo mv cuda-ubuntu2004.pin /etc/apt/preferences.d/cuda-repository-pin-600 && \
-#    wget https://developer.download.nvidia.com/compute/cuda/12.5.1/local_installers/cuda-repo-ubuntu2004-12-5-local_12.5.1-555.42.06-1_amd64.deb && \
-#    sudo dpkg -i cuda-repo-ubuntu2004-12-5-local_12.5.1-555.42.06-1_amd64.deb && \
-#    sudo cp /var/cuda-repo-ubuntu2004-12-5-local/cuda-*-keyring.gpg /usr/share/keyrings/ && \
-#    sudo dpkg -i cuda-repo-ubuntu2004-12-5-local_12.5.1-555.42.06-1_amd64.deb && \
-#    sudo apt-get update && \
-#    sudo apt-get -y install cuda-toolkit-12-5
-
+# Install python
 RUN mamba install python=3.10.* -c conda-forge -y
-# RUN mamba install python=3.10.* jupyter nb_conda notebook ffmpeg pytables=3.8.0 -c conda-forge -y
-# RUN pip install 'git+https://github.com/DeepLabCut/DeepLabCut.git@pytorch_dlc#egg=deeplabcut[gui,modelzoo,wandb]'
-# RUN mamba install tensorflow-gpu -c conda-forge -y
-# RUN mamba install python=3.10.* pytorch torchvision torchaudio pytorch-cuda=12.1 -c pytorch-nightly -c nvidia -c conda-forge -y
-# RUN mamba install -c pytorch -c nvidia -c conda-forge python==3.10.* pytorch torchvision torchaudio pytorch-cuda==12.1  pytorch-lightning cudatoolkit cuda -y 
-# RUN mamba install -c pytorch -c nvidia -c conda-forge python==3.10.* pytorch torchvision torchaudio pytorch-cuda  pytorch-lightning cudatoolkit cuda  mkl==2024.2.* -y
 
-# RUN mamba install -c conda-forge mlflow pytables==3.8.0 -y
-
-# RUN python -m pip install wheel && \
-#     python -m pip install --pre --upgrade tensorrt
-
-# RUN pip install tensorflow[and-cuda]
+ENV PYTORCH_NVML_BASED_CUDA_CHECK=1
+ENV NVIDIA_VISIBLE_DEVICES=all
+ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility
 
 # install pyTorch
-RUN conda install pytorch torchvision torchaudio pytorch-cuda=12.1 -c pytorch -c nvidia -y
+#RUN conda install torchvision torchaudio pytorch-cuda=12.1 -c pytorch -c nvidia -y
+RUN conda install pytorch-gpu torchvision torchaudio pytorch-cuda=12.1 -c pytorch -c nvidia
 
 COPY kasmvnc_defaults.yaml /usr/share/kasmvnc/kasmvnc_defaults.yaml
 COPY vnc_startup.sh /dockerstartup/vnc_startup.sh
