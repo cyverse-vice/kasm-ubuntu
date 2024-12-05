@@ -38,8 +38,6 @@ ARG PRIV_CMDS='ALL'
 RUN usermod -aG sudo kasm-user && \
     echo "$LOCAL_USER ALL=NOPASSWD: $PRIV_CMDS" >> /etc/sudoersq
 
-# USER kasm-user
-
 # Add conda
 RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh && \
     /bin/bash ~/miniconda.sh -b -p /home/kasm-user/miniconda3 && \
@@ -72,6 +70,7 @@ RUN sudo add-apt-repository ppa:graphics-drivers/ppa && \
     sudo apt install ubuntu-drivers-common -y && \
     sudo apt dist-upgrade  
 
+# Install cuda toolkit
 RUN apt-get update && \
     apt-get install -y wget gnupg && \
     wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/cuda-keyring_1.0-1_all.deb && \
@@ -83,6 +82,7 @@ RUN sudo apt-get install -y cuda-toolkit-12-1
 ENV PATH=/usr/local/cuda/bin:$PATH
 ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
 
+# Install NVIDIA driver
 RUN sudo apt install nvidia-driver-555 -y
 
 # Initialize conda
@@ -92,24 +92,24 @@ RUN echo "conda activate base" >> ~/.bashrc && \
 # Install python
 RUN mamba install python=3.10.* -c conda-forge -y
 
+# Set correct pytorch/nvidia environment vars
 ENV PYTORCH_NVML_BASED_CUDA_CHECK=1
 ENV NVIDIA_VISIBLE_DEVICES=all
 ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility
 
 # install pyTorch
-#RUN conda install torchvision torchaudio pytorch-cuda=12.1 -c pytorch -c nvidia -y
 RUN conda install pytorch-gpu torchvision torchaudio pytorch-cuda=12.1 -c pytorch -c nvidia
 
 COPY kasmvnc_defaults.yaml /usr/share/kasmvnc/kasmvnc_defaults.yaml
 COPY vnc_startup.sh /dockerstartup/vnc_startup.sh
-#COPY sudoers /etc/sudoers
 
 # Clean conda and set right privs
 RUN conda clean --all -y
 RUN sudo chown -R ${LOCAL_USER} /home/kasm-user/miniconda3
 
+# Set right permissions
 RUN sudo chmod +x /dockerstartup/vnc_startup.sh
 
-# USER kasm-user
+USER kasm-user
 
-ENTRYPOINT [ "/bin/bash" ]
+ENTRYPOINT [ "/dockerstartup/vnc_startup.sh" ]
