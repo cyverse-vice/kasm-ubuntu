@@ -1,4 +1,4 @@
-FROM kasmweb/ubuntu-focal-desktop:1.14.0-rolling
+FROM kasmweb/ubuntu-jammy-desktop:1.16.0
 
 # create ~/data-store for CSI driver fuse mount
 WORKDIR /home/kasm-user/data-store
@@ -38,8 +38,6 @@ ARG PRIV_CMDS='ALL'
 RUN usermod -aG sudo kasm-user && \
     echo "$LOCAL_USER ALL=NOPASSWD: $PRIV_CMDS" >> /etc/sudoersq
 
-# USER kasm-user
-
 # Add conda
 RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh && \
     /bin/bash ~/miniconda.sh -b -p /home/kasm-user/miniconda3 && \
@@ -57,52 +55,96 @@ ENV PATH=/home/kasm-user/miniconda3/bin:$PATH
 # Install dependencies
 RUN conda install -c conda-forge mamba -y
 
-RUN sudo apt-get update -y && \
-    sudo apt-get upgrade -y && \
-    sudo apt-get install -y gnome-session gnome-shell gnome-control-center gnome-terminal gnome-system-monitor gnome-tweak-tool gcc make linux-headers-$(uname -r) --no-install-recommends && \
-    sudo apt-get clean
+# Update, upgrade, and install necessary packages
+RUN apt-get update -y && \
+    apt-get upgrade -y && \
+    apt-get install -y gnome-session gnome-shell gnome-control-center \
+                       gnome-terminal gnome-system-monitor gnome-tweak-tool \
+                       gcc make --no-install-recommends && \
+    apt-get install -y linux-headers-$(uname -r) || apt-get install -y linux-headers-generic && \
+    apt-get clean
 
 # Install NVIDIA dependencies
-RUN sudo add-apt-repository ppa:graphics-drivers/ppa && \
+RUN sudo add-apt-repository ppa:graphics-drivers/ppa -y && \
     sudo apt update -y && \
     sudo apt install ubuntu-drivers-common -y && \
-    sudo apt dist-upgrade  
+    sudo apt dist-upgrade -y 
 
-RUN wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/cuda-keyring_1.1-1_all.deb
-RUN sudo dpkg -i cuda-keyring_1.1-1_all.deb
-RUN sudo apt install nvidia-driver-535 -y
-# RUN sudo apt-get install tensorrt -y
+# Install cuda toolkit
+RUN apt-get update && \
+    apt-get install -y wget gnupg && \
+    wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/cuda-keyring_1.0-1_all.deb && \
+    dpkg -i cuda-keyring_1.0-1_all.deb && \
+    apt-get update
+RUN sudo apt-get install -y cuda-toolkit-12-1
+  
+# Add CUDA to PATH
+ENV PATH=/usr/local/cuda/bin:$PATH
+ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
 
-# RUN sudo apt update # && sudo apt upgrade -y # updating doesn't help
+# Install NVIDIA driver
+RUN sudo apt install nvidia-driver-555 -y
 
 # Initialize conda
 RUN echo "conda activate base" >> ~/.bashrc && \
     /bin/bash -c "conda init"
 
-RUN mamba install python=3.10.* jupyter nb_conda notebook ffmpeg pytables=3.8.0 -c conda-forge -y
-RUN pip install 'git+https://github.com/DeepLabCut/DeepLabCut.git@pytorch_dlc#egg=deeplabcut[gui,modelzoo,wandb]'
-# RUN mamba install tensorflow-gpu -c conda-forge -y
-# RUN mamba install python=3.10.* pytorch torchvision torchaudio pytorch-cuda=12.1 -c pytorch-nightly -c nvidia -c conda-forge -y
-# RUN mamba install -c pytorch -c nvidia -c conda-forge python==3.10.* pytorch torchvision torchaudio pytorch-cuda==12.1  pytorch-lightning cudatoolkit cuda -y 
-# RUN mamba install -c pytorch -c nvidia -c conda-forge python==3.10.* pytorch torchvision torchaudio pytorch-cuda  pytorch-lightning cudatoolkit cuda  mkl==2024.2.* -y
+# Install python
+RUN mamba install python=3.10.* -c conda-forge -y
 
-# RUN mamba install -c conda-forge mlflow pytables==3.8.0 -y
+# Set correct pytorch/nvidia environment vars
+ENV PYTORCH_NVML_BASED_CUDA_CHECK=1
+ENV NVIDIA_VISIBLE_DEVICES=all
 
-# RUN python -m pip install wheel && \
-#     python -m pip install --pre --upgrade tensorrt
-
-# RUN pip install tensorflow[and-cuda]
+# install pyTorch
+RUN conda install pytorch-cuda=12.1 -c pytorch -c nvidia
 
 COPY kasmvnc_defaults.yaml /usr/share/kasmvnc/kasmvnc_defaults.yaml
 COPY vnc_startup.sh /dockerstartup/vnc_startup.sh
-#COPY sudoers /etc/sudoers
 
 # Clean conda and set right privs
 RUN conda clean --all -y
 RUN sudo chown -R ${LOCAL_USER} /home/kasm-user/miniconda3
 
+# Set right permissions
 RUN sudo chmod +x /dockerstartup/vnc_startup.sh
 
-# USER kasm-user
+
+#########
+
+COPY DEEPLABCUT.yaml /home/kasm-user/data-store/DEEPLABCUT.yaml
+
+# Prevent interactive prompts during package installation
+ENV DEBIAN_FRONTEND=noninteractive
+    
+#RUN conda install -c conda-forge pytables==3.8.0
+#RUN pip install git+https://github.com/DeepLabCut/DeepLabCut.git@pytorch_dlc#egg=deeplabcut[gui,modelzoo,wandb]
+
+#RUN pip install --upgrade numexpr
+#RUN pip install torch==2.0.1 torchvision==0.15.2 torchaudio
+
+#RUN conda install cudnn -c conda-forge
+RUN conda env create -f DEEPLABCUT.yaml
+RUN conda env update -f DEEPLABCUT.yaml
+
+RUN /bin/bash -c "source activate DEEPLABCUT && \
+    pip install --force-reinstall --no-deps shiboken6==6.8.0.2 && \
+    conda install pyside6 -c conda-forge -y"
+
+# Ensure the environment is activated in the shell session
+SHELL ["conda", "run", "-n", "DEEPLABCUT", "/bin/bash", "-c"]
+
+
+ENV CUDA_VISIBLE_DEVICES=0
+
+#USER kasm-user
+
+#RUN echo "conda activate DEEPLABCUT" >> ~/.bashrc
+
+RUN sudo apt update && sudo apt update
+
+
+#USER kasm-user
 
 ENTRYPOINT [ "/dockerstartup/vnc_startup.sh" ]
+#ENTRYPOINT [  "/bin/bash" ]
