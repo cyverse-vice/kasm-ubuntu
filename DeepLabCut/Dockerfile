@@ -143,8 +143,11 @@ ENV CUDA_VISIBLE_DEVICES=0
 
 RUN sudo apt update && sudo apt update
 
+RUN chmod -R a+wx /home/kasm-user/
 
-#USER kasm-user
+USER kasm-user
+
+#RUN touch ~/.Xauthority
 
 ENTRYPOINT [ "/dockerstartup/vnc_startup.sh" ]
 #ENTRYPOINT [  "/bin/bash" ]
