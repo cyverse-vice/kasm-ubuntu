@@ -99,15 +99,17 @@ COPY vnc_startup.sh /dockerstartup/vnc_startup.sh
 
 #USER kasm-user
 
+RUN ln -s /usr/lib/x86_64-linux-gnu/libffi.so.7 /usr/lib/x86_64-linux-gnu/libffi.so.6 || true
+
 # Adding Java home to bashrc &
 # Install CellProfiler
 COPY environment.yml /home/kasm-user/environment.yml
-RUN cd && \
-    conda install -c conda-forge mamba -y && \
-    mamba env create -f environment.yml -y && \
-    echo "source activate cellprofiler" >> ~/.bashrc && \
-    echo "export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64" >> ~/.bashrc && \
-    /bin/bash -c "source activate cellprofiler"
+#RUN cd && \
+#    conda install -c conda-forge mamba -y && \
+#    mamba env create -f environment.yml -y && \
+#    echo "source activate cellprofiler" >> ~/.bashrc && \
+#    echo "export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64" >> ~/.bashrc && \
+#    /bin/bash -c "source activate cellprofiler"
 
 # add `cellprofiler` `cellpose` and `imagej` to Gnome Applications Menu
 RUN mkdir -p ~/.local/share/applications && \
@@ -139,12 +141,71 @@ RUN cd && \
 
 COPY CellProfilerLocal.cfg /home/kasm-user
 
+###
+
+# Install NVIDIA dependencies
+RUN sudo add-apt-repository ppa:graphics-drivers/ppa -y && \
+    sudo apt update -y && \
+    sudo apt install ubuntu-drivers-common -y
+
+# Install cuda toolkit
+#RUN apt-get update && \
+#    apt-get install -y wget gnupg && \
+#    wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/cuda-keyring_1.0-1_all.deb && \
+#    dpkg -i cuda-keyring_1.0-1_all.deb && \
+#    apt-get update
+#RUN sudo apt-get install -y cuda-toolkit-12-1
+  
+# Add CUDA to PATH
+ENV PATH=/usr/local/cuda/bin:$PATH
+ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
+
+# Install NVIDIA driver
+#RUN sudo apt install nvidia-driver-555 -y
+
+# Initialize conda
+#RUN echo "conda activate base" >> ~/.bashrc && \
+#    /bin/bash -c "conda init"
+
+# Install python
+RUN mamba install python=3.9 -c conda-forge -y
+
+# Set correct pytorch/nvidia environment vars
+ENV PYTORCH_NVML_BASED_CUDA_CHECK=1
+ENV NVIDIA_VISIBLE_DEVICES=all
+ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility
+
+# install pyTorch
+#RUN conda install pytorch-gpu torchvision torchaudio pytorch-cuda=12.1 -c pytorch -c nvidia
+#RUN pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+
+###
+
+# Install Java and set JAVA_HOME
+RUN apt-get update && \
+    apt-get install -y openjdk-11-jdk && \
+    echo "export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64" >> ~/.bashrc && \
+    echo "export PATH=\${JAVA_HOME}/bin:\${PATH}" >> ~/.bashrc
+
+#ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
+#ENV PATH=\${JAVA_HOME}/bin:\${PATH}
+
+RUN pip install Cython
+RUN pip install cellprofiler==4.2.8 cellpose==2.2.3 cellpose[gpu,gui]
+ 
+RUN pip install torch
+
+ENV LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libffi.so.7
+
+RUN sed -i '/PluginDirectoryCP4=/d' ~/CellProfilerLocal.cfg
+RUN echo "PluginDirectoryCP4=/home/kasm-user/CellProfiler-plugins/active_plugins" >> ~/CellProfilerLocal.cfg
+
 RUN chmod a+x /dockerstartup/vnc_startup.sh
 
 # adding right permissions
-RUN chmod -R a+wx /home/kasm-user/
+#RUN chmod -R a+wx /home/kasm-user/
 
-USER kasm-user
+#USER kasm-user
+
 
 ENTRYPOINT [ "/dockerstartup/vnc_startup.sh" ]
-
