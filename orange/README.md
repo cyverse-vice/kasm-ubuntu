@@ -33,6 +33,6 @@ Follow the instructions in the [VICE manual for integrating your own tools and a
 
 ---
 
-Launch the Label Studio Container in CyVerse Discovery Environment: <a href="https://de.cyverse.org/apps/de/4e54dbd6-de76-11ef-b1f4-008cfa5ae621/launch" target="_blank"><img src="https://de.cyverse.org/Powered-By-CyVerse-blue.svg"></a>
+Launch the Orange Container in CyVerse Discovery Environment: <a href="https://de.cyverse.org/apps/de/4e54dbd6-de76-11ef-b1f4-008cfa5ae621/launch" target="_blank"><img src="https://de.cyverse.org/Powered-By-CyVerse-blue.svg"></a>
 
 More information can be found on the Orange website: https://orangedatamining.com/
