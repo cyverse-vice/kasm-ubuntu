@@ -376,6 +376,8 @@ profile_size_check &
 start_webcam
 start_printer
 
+cellprofiler
+
 STARTUP_COMPLETE=1
 
 
