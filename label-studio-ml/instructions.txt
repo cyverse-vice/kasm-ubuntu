@@ -1,0 +1,29 @@
+Welcome to Label Studio ML
+
+We currently offer the following models:
+-bert_classifier
+-easyocr
+-flair
+-gliner
+-huggingface_llm
+-huggingface_ner
+-interactive_substring_matching
+-langchain_search_agent
+-llm_interactive
+-nemo_asr
+-segment_anything_2_image
+-sklearn_text_classifier
+-tesseract
+-yolo
+
+To start Label Studio with a specific model, open the terminal and run these commands:
+
+1. cd ..
+2. ./start.sh [your_model_name]
+
+Label Studio will then open. Once logged in:
+
+1. Create a new project
+2. From the 'Model' page in the project settings, connect the model using the url 'http://localhost:9090'
+
+For more information, see the label-studio-ml-backend github: 'https://github.com/HumanSignal/label-studio-ml-backend/tree/master'
