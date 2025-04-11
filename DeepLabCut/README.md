@@ -12,7 +12,7 @@ docker pull harbor.cyverse.org/vice/kasm/deeplabcut:gpu-2412
 ```
 2. Run the container:
 ```
-docker run -it --rm -p 6901:6901 harbor.cyverse.org/vice/kasm/deeplabcut:gpu-2412
+docker run -it --rm --gpus all -p 6901:6901 harbor.cyverse.org/vice/kasm/deeplabcut:gpu-2412
 ```
 3. Open a web browser and visit http://localhost:6901 or http://127.0.0.1:6901 to access the container.
 4. In Kasm, open a terminal and activate the DEEPLABCUT conda environment:
