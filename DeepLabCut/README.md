@@ -2,9 +2,9 @@
 
 DeepLabCut is an open source Python package for animal pose estimation. This directory contains everything needed to launch a [Kasm workspace](https://kasmweb.com/) through docker and run DeepLabCut. This image uses DLC version 3.0 with a PyTorch backend.
 
-# Instructions
+## Instructions
 
-## Run the container locally or on a Virtual Machine
+### Run the container locally or on a Virtual Machine
 
 1. Pull the image from harbor.cyverse.org:
 ```
@@ -24,7 +24,9 @@ conda activate DEEPLABCUT
 python -m deeplabcut
 ```
 
-## Build your own Docker container and deploy on CyVerse VICE
+For more information on GPU use, go here: https://kasmweb.com/docs/latest/how_to/gpu.html
+
+### Build your own Docker container and deploy on CyVerse VICE
 
 This container is intended to run on the CyVerse data science workbench, called [VICE](https://cyverse-visual-interactive-computing-environment.readthedocs-hosted.com/en/latest/index.html).
 
