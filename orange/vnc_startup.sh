@@ -2,14 +2,6 @@
 ### every exit != 0 fails the script
 set -e
 
-if [ -f /data-store/iplant/home/$IPLANT_USER/.gitconfig ]; then
-  cp /data-store/iplant/home/$IPLANT_USER/.gitconfig ~/
-fi
-
-if [ -d /data-store/iplant/home/$IPLANT_USER/.ssh ]; then
-  cp -r /data-store/iplant/home/$IPLANT_USER/.ssh ~/
-fi
-
 no_proxy="localhost,127.0.0.1"
 
 if [ -f /usr/bin/kasm-profile-sync ]; then
@@ -376,10 +368,12 @@ profile_size_check &
 start_webcam
 start_printer
 
-cellprofiler
+# Start Orange
+/home/kasm-user/miniconda3/envs/orange/bin/orange-canvas
 
 STARTUP_COMPLETE=1
 
+conda init
 
 ## log connect options
 echo -e "\n\n------------------ KasmVNC environment started ------------------"

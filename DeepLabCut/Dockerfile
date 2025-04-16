@@ -1,4 +1,4 @@
-FROM gabebarros/kasm-ubuntu:20.04-gpu
+FROM harbor.cyerse.org/vice/kasm/ubuntu:gpu-20.04-stable
 
 # create ~/data-store for CSI driver fuse mount
 WORKDIR /home/kasm-user/data-store
@@ -21,7 +21,6 @@ RUN chown -R ${LOCAL_USER}:${LOCAL_USER} /home/kasm-user/miniconda3
 # Set right permissions
 RUN sudo chmod +x /dockerstartup/vnc_startup.sh
 
-
 #########
 
 COPY DEEPLABCUT.yaml /home/kasm-user/data-store/DEEPLABCUT.yaml
@@ -36,9 +35,9 @@ RUN /bin/bash -c "source activate DEEPLABCUT && \
     pip install --force-reinstall --no-deps shiboken6==6.8.0.2 && \
     conda install pyside6 -c conda-forge -y"
 
+
 # Ensure the environment is activated in the shell session
 SHELL ["conda", "run", "-n", "DEEPLABCUT", "/bin/bash", "-c"]
-
 
 ENV CUDA_VISIBLE_DEVICES=0
 
@@ -58,4 +57,3 @@ RUN chmod -R a+rw /home/kasm-user/.cache
 
 ENTRYPOINT [ "/dockerstartup/vnc_startup.sh" ]
 #ENTRYPOINT [  "/bin/bash" ]
-

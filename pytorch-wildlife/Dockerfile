@@ -29,40 +29,8 @@ ENV PATH=/home/kasm-user/miniconda3/bin:$PATH
 
 # Install dependencies
 RUN conda install -c conda-forge mamba -y
-# Install CellProfiler Dependencies
-RUN apt-get update && \
-    apt-get install -y \
-    make \
-    gcc \
-    build-essential \
-    libgtk-3-dev \
-    openjdk-11-jdk-headless \
-    default-libmysqlclient-dev \
-    libnotify-dev \
-    libsdl2-dev \
-    python3-pip \
-    python3-tk \
-    freeglut3 \
-    freeglut3-dev \
-    libgl1-mesa-dev \
-    libglu1-mesa-dev \
-    libgstreamer-plugins-base1.0-dev \
-    libgtk-3-dev \
-    libjpeg-dev \
-    libnotify-dev \
-    libsdl2-dev \
-    libsm-dev \
-    libtiff-dev \
-    libwebkit2gtk-4.0-dev \
-    libxtst-dev \
-    nano \
-    && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/* && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
 
-# Install Go
+# Install GO
 RUN wget -q -c https://dl.google.com/go/go1.20.5.linux-amd64.tar.gz -O - | tar -xz -C /usr/local
 ENV PATH=$PATH:/usr/local/go/bin
 
@@ -97,40 +65,6 @@ COPY kasmvnc_defaults.yaml /usr/share/kasmvnc/kasmvnc_defaults.yaml
 COPY vnc_startup.sh /dockerstartup/vnc_startup.sh
 #COPY sudoers /etc/sudoers
 
-RUN ln -s /usr/lib/x86_64-linux-gnu/libffi.so.7 /usr/lib/x86_64-linux-gnu/libffi.so.6 || true
-
-COPY environment.yml /home/kasm-user/environment.yml
-
-# add `cellprofiler` `cellpose` and `imagej` to Gnome Applications Menu
-RUN mkdir -p ~/.local/share/applications && \
-    echo "[Desktop Entry]" >> ~/.local/share/applications/cellprofiler.desktop && \
-    echo "Name=CellProfiler" >> ~/.local/share/applications/cellprofiler.desktop && \
-    echo "Exec=/bin/bash -c cellprofiler" >> ~/.local/share/applications/cellprofiler.desktop && \
-    echo "Icon=" >> ~/.local/share/applications/cellprofiler.desktop && \
-    echo "Type=Application" >> ~/.local/share/applications/cellprofiler.desktop && \
-    echo "Categories=Application;" >> ~/.local/share/applications/cellprofiler.desktop && \
-    echo "Terminal=false" >> ~/.local/share/applications/cellprofiler.desktop && \
-    echo "[Desktop Entry]" >> ~/.local/share/applications/imagej.desktop && \
-    echo "Name=ImageJ" >> ~/.local/share/applications/imagej.desktop && \
-    echo "Exec=/bin/bash -c imagej" >> ~/.local/share/applications/imagej.desktop && \
-    echo "Icon=" >> ~/.local/share/applications/imagej.desktop && \
-    echo "Type=Application" >> ~/.local/share/applications/imagej.desktop && \
-    echo "Categories=Application;" >> ~/.local/share/applications/imagej.desktop && \
-    echo "Terminal=false" >> ~/.local/share/applications/imagej.desktop && \
-    echo "[Desktop Entry]" >> ~/.local/share/applications/cellpose.desktop && \
-    echo "Name=CellPose" >> ~/.local/share/applications/cellpose.desktop && \
-    echo "Exec=/bin/bash -c cellpose" >> ~/.local/share/applications/cellpose.desktop && \
-    echo "Icon=" >> ~/.local/share/applications/cellpose.desktop && \
-    echo "Type=Application" >> ~/.local/share/applications/cellpose.desktop && \
-    echo "Categories=Application;" >> ~/.local/share/applications/cellpose.desktop && \
-    echo "Terminal=false" >> ~/.local/share/applications/cellpose.desktop
-
-# Install CellProfiler Plugins
-RUN cd && \
-    git clone https://github.com/CellProfiler/CellProfiler-plugins.git
-
-COPY CellProfilerLocal.cfg /home/kasm-user
-
 # Install NVIDIA dependencies
 RUN sudo add-apt-repository ppa:graphics-drivers/ppa -y && \
     sudo apt update -y && \
@@ -141,7 +75,7 @@ ENV PATH=/usr/local/cuda/bin:$PATH
 ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
 
 # Install python
-RUN mamba install python=3.9 -c conda-forge -y
+RUN mamba install python=3.10 -c conda-forge -y
 
 # Set correct pytorch/nvidia environment vars
 ENV PYTORCH_NVML_BASED_CUDA_CHECK=1
@@ -154,23 +88,17 @@ RUN apt-get update && \
     echo "export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64" >> ~/.bashrc && \
     echo "export PATH=\${JAVA_HOME}/bin:\${PATH}" >> ~/.bashrc
 
-# install pytorch, cellprofiler, cellpose, ...
-RUN pip install Cython
-RUN pip install cellprofiler==4.2.8 cellpose==2.2.3 cellpose[gpu,gui] tensorflow[and-cuda] 
+# install pytorch, and pytorch wildlife
+RUN pip install PytorchWildlife 
 RUN pip install torch
 
-ENV LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libffi.so.7
-
-# set plugin directory
-RUN sed -i '/PluginDirectoryCP4=/d' ~/CellProfilerLocal.cfg
-RUN echo "PluginDirectoryCP4=/home/kasm-user/CellProfiler-plugins/active_plugins" >> ~/CellProfilerLocal.cfg
-
-# add import to runcellpose
-RUN sed -i '1s/^/from cellpose import core\n/' /home/kasm-user/CellProfiler-plugins/active_plugins/runcellpose.py 
+# make script executable
 RUN chmod a+x /dockerstartup/vnc_startup.sh
 
 # adding right permissions
 RUN chmod -R a+wx /home/kasm-user/
+
+COPY instructions.md /home/kasm-user/data-store/
 
 USER kasm-user
 

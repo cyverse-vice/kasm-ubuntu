@@ -376,7 +376,7 @@ profile_size_check &
 start_webcam
 start_printer
 
-cellprofiler
+subl instructions.md
 
 STARTUP_COMPLETE=1
 

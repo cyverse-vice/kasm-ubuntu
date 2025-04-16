@@ -167,6 +167,7 @@ function start_kasmvnc (){
 	  echo -e "\n------------------ Started Websockify  ----------------------------"
 	  echo "Websockify PID: ${KASM_PROCS['kasmvnc']}";
 	fi
+
 }
 
 function start_window_manager (){
@@ -188,6 +189,7 @@ function start_window_manager (){
 	else
 		echo "Skipping XFCE Startup"
 	fi
+
 }
 
 function start_audio_out_websocket (){
@@ -376,7 +378,8 @@ profile_size_check &
 start_webcam
 start_printer
 
-cellprofiler
+# start label studio
+label-studio --host http://localhost:8080
 
 STARTUP_COMPLETE=1
 
