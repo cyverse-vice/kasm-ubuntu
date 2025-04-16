@@ -1,4 +1,4 @@
-FROM gabebarros/kasm-ubuntu:20.04-gpu
+FROM harbor.cyverse.org/vice/kasm/ubuntu:gpu-20.04-stable
 
 USER kasm-user
 
