@@ -1,4 +1,4 @@
-FROM harbor.cyerse.org/vice/kasm/ubuntu:gpu-20.04-stable
+FROM harbor.cyverse.org/vice/kasm/ubuntu:gpu-20.04-stable
 
 # create ~/data-store for CSI driver fuse mount
 WORKDIR /home/kasm-user/data-store
