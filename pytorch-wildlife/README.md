@@ -18,20 +18,25 @@ docker run -it --rm -p 6901:6901 --gpus all harbor.cyverse.org/vice/kasm/pytorch
 
 ## How to test Pytorch-wildlife
 
-Cellprofiler provides some example image sets for testing purposes. To test the container using these examples:
+To perform a simple image analysis test to make sure the library is working:
 
 1. Run the container (above)
-2. In the container, run:
+2. In the container, run this python code:
 ```
-git clone https://github.com/microsoft/CameraTraps.git
-cd CameraTraps
-cd demo
-# For the image demo
-python image_demo.py
-# For the video demo
-python video_demo.py
-# For the gradio app
-python gradio_demo.py
+import numpy as np
+from PytorchWildlife.models import detection as pw_detection
+from PytorchWildlife.models import classification as pw_classification
+
+# HWC format, dtype = float32 or uint8
+img = (np.random.rand(1280, 1280, 3) * 255).astype(np.uint8)
+
+# Detection
+detection_model = pw_detection.MegaDetectorV6(version="MDV6-yolov10-c")
+detection_result = detection_model.single_image_detection(img)
+
+# Classification
+classification_model = pw_classification.AI4GAmazonRainforest()
+classification_results = classification_model.single_image_classification(img)
 ```
 
 ## Build your own Docker container and deploy on CyVerse VICE

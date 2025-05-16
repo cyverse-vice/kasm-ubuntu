@@ -98,7 +98,7 @@ RUN chmod a+x /dockerstartup/vnc_startup.sh
 # adding right permissions
 RUN chmod -R a+wx /home/kasm-user/
 
-COPY instructions.md /home/kasm-user/data-store/
+COPY instructions.md /
 
 USER kasm-user
 

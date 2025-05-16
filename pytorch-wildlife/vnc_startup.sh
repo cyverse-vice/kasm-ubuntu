@@ -376,7 +376,7 @@ profile_size_check &
 start_webcam
 start_printer
 
-subl instructions.md
+subl /instructions.md
 
 STARTUP_COMPLETE=1
 
