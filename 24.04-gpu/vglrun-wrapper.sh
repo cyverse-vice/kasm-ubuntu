@@ -3,22 +3,20 @@
 
 APP="$@"
 
-# Check if VirtualGL is installed and GPU devices are available
-if [ -f /opt/VirtualGL/bin/vglrun ] && \
-   [ -n "${KASM_EGL_CARD}" ] && \
-   [ -n "${KASM_RENDERD}" ] && \
-   [ -O "${KASM_RENDERD}" ] && \
-   [ -O "${KASM_EGL_CARD}" ]; then
-    
-    echo "Starting with GPU Acceleration on EGL device ${KASM_EGL_CARD}"
-    exec /opt/VirtualGL/bin/vglrun -d "${KASM_EGL_CARD}" $APP
+# Find vglrun location (check common paths)
+if command -v vglrun &>/dev/null; then
+    VGLRUN="vglrun"
+elif [ -x "/opt/VirtualGL/bin/vglrun" ]; then
+    VGLRUN="/opt/VirtualGL/bin/vglrun"
 else
-    # Fallback: Check if /dev/dri devices exist without KASM variables
-    if [ -f /opt/VirtualGL/bin/vglrun ] && [ -e "/dev/dri/card0" ]; then
-        echo "Starting with GPU Acceleration on /dev/dri/card0"
-        exec /opt/VirtualGL/bin/vglrun -d egl $APP
-    else
-        echo "Starting without GPU acceleration (software rendering)"
-        exec $APP
-    fi
+    VGLRUN=""
+fi
+
+# Check if VirtualGL is available and we have GPU devices
+if [ -n "$VGLRUN" ] && [ -d "/dev/dri" ]; then
+    echo "Starting with GPU Acceleration via VirtualGL (EGL backend)"
+    exec env VGL_DISPLAY=egl "$VGLRUN" $APP
+else
+    echo "Starting without GPU acceleration (software rendering)"
+    exec $APP
 fi

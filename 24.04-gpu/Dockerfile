@@ -7,7 +7,8 @@ FROM kasmweb/ubuntu-noble-nvidia-pytorch:1.18.0-rolling-daily
 ENV NVIDIA_VISIBLE_DEVICES=all \
     NVIDIA_DRIVER_CAPABILITIES=compute,utility,graphics,display \
     __GLX_VENDOR_LIBRARY_NAME=nvidia \
-    __EGL_VENDOR_LIBRARY_FILENAMES=/usr/share/glvnd/egl_vendor.d/10_nvidia.json
+    __EGL_VENDOR_LIBRARY_FILENAMES=/usr/share/glvnd/egl_vendor.d/10_nvidia.json \
+    VGL_DISPLAY=egl
 
 USER root
 

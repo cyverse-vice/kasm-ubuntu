@@ -6,7 +6,7 @@ desktop:
   allow_resize: true
   pixel_depth: 24
   gpu:
-    hw3d: false
+    hw3d: true
     drinode: /dev/dri/renderD128
 
 network:
