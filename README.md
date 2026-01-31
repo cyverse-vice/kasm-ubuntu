@@ -6,6 +6,12 @@ Ubuntu desktop environments running [KASM VNC](https://kasmweb.com/) for full gr
 
 [![Harbor Build Status](https://github.com/cyverse-vice/kasm-ubuntu/actions/workflows/harbor.yml/badge.svg)](https://github.com/cyverse-vice/kasm-ubuntu/actions) ![GitHub commits since tagged version](https://img.shields.io/github/commits-since/cyverse-vice/kasm-ubuntu/latest/main?style=flat-square)
 
+## Quick Launch
+
+| Version | Launch |
+|---------|--------|
+| 24.04 | <a href="https://de.cyverse.org/apps/de/4bff2982-7b8c-11f0-a538-008cfa5ae621/launch" target="_blank" rel="noopener noreferrer"><img src="https://img.shields.io/badge/KASM-24.04-purple?style=plastic&logo=ubuntu"></a> |
+
 ## Features
 
 ### AI Development Tools (24.04)
