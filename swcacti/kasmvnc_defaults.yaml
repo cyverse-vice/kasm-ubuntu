@@ -1,0 +1,128 @@
+---
+desktop:
+  resolution:
+    width: 1024
+    height: 768
+  allow_resize: true
+  pixel_depth: 24
+  gpu:
+    hw3d: false
+    drinode: /dev/dri/renderD128
+
+network:
+  protocol: http
+  interface: 0.0.0.0
+  websocket_port: auto
+  use_ipv4: true
+  use_ipv6: true
+  udp:
+    public_ip: auto
+    port: auto
+    stun_server: auto
+  ssl:
+    pem_certificate: /etc/ssl/certs/ssl-cert-snakeoil.pem
+    pem_key: /etc/ssl/private/ssl-cert-snakeoil.key
+    require_ssl: true
+
+user_session:
+  new_session_disconnects_existing_exclusive_session: false
+  concurrent_connections_prompt: false
+  concurrent_connections_prompt_timeout: 10
+  idle_timeout: 900
+
+keyboard:
+  remap_keys:
+  ignore_numlock: false
+  raw_keyboard: false
+
+pointer:
+  enabled: true
+
+runtime_configuration:
+  allow_client_to_override_kasm_server_settings: false
+  allow_override_standard_vnc_server_settings: false
+  allow_override_list: []
+
+logging:
+  log_writer_name: all
+  log_dest: logfile
+  level: 30
+
+security:
+  brute_force_protection:
+    blacklist_threshold: 5
+    blacklist_timeout: 300
+
+data_loss_prevention:
+  visible_region:
+    concealed_region:
+      allow_click_down: false
+      allow_click_release: false
+  clipboard:
+    delay_between_operations: none
+    allow_mimetypes: []
+    server_to_client:
+      enabled: false
+      size: 0
+      primary_clipboard_enabled: false
+    client_to_server:
+      enabled: false
+      size: 0
+  keyboard:
+    enabled: true
+    rate_limit: unlimited
+  watermark:
+    tint: 128,128,128,64
+    text:
+      template: "${USER} %Y-%m-%d %H:%M"
+      font: auto
+      font_size: 24
+    repeat_spacing: 200
+  logging:
+    level: info
+
+encoding:
+  max_frame_rate: 60
+  full_frame_updates: none
+  rect_encoding_mode:
+    min_quality: 7
+    max_quality: 8
+    consider_lossless_quality: 10
+    rectangle_compress_threads: auto
+
+  video_encoding_mode:
+    jpeg_quality: -1
+    webp_quality: -1
+    max_resolution:
+      width: 1920
+      height: 1080
+    enter_video_encoding_mode:
+      time_threshold: 5
+      area_threshold: 45%
+    exit_video_encoding_mode:
+      time_threshold: 3
+    logging:
+      level: off
+    scaling_algorithm: progressive_bilinear
+
+  compare_framebuffer: auto
+  zrle_zlib_level: 9
+  hextile_improved_compression: true
+
+server:
+  http:
+    headers:
+      - Cross-Origin-Embedder-Policy=require-corp
+      - Cross-Origin-Opener-Policy=same-origin
+    httpd_directory: /usr/share/kasmvnc/www
+  advanced:
+    x_font_path: auto
+    kasm_password_file: ${HOME}/.kasmpasswd
+    x_authority_file: auto
+  auto_shutdown:
+    no_user_session_timeout: 900
+    active_user_session_timeout: 28800
+    inactive_user_session_timeout: 900
+
+command_line:
+  prompt: true
