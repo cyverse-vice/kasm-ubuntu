@@ -17,14 +17,46 @@ echo "Clipboard: DISABLED | File upload: DISABLED | Audio: DISABLED"
 echo "Peripheral services: DISABLED | DLP fail-secure: ENABLED"
 echo "=============================="
 
+# ===== Network Firewall (defense-in-depth) =====
+# Applies iptables if CAP_NET_ADMIN is available.
+# In Kubernetes with capabilities dropped, this silently skips
+# and relies on NetworkPolicy for egress control.
+# For standalone Docker: run with --cap-add NET_ADMIN
+if iptables -L -n >/dev/null 2>&1; then
+    echo "[FIREWALL] Applying HIPAA Clean Room network rules..."
+    iptables -F OUTPUT 2>/dev/null || true
+    iptables -P OUTPUT DROP
+    # Loopback (X11, VNC internal communication)
+    iptables -A OUTPUT -o lo -j ACCEPT
+    # Established/related (reply traffic for VNC connections)
+    iptables -A OUTPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+    # DNS (required for iRODS hostname resolution)
+    iptables -A OUTPUT -p udp --dport 53 -j ACCEPT
+    iptables -A OUTPUT -p tcp --dport 53 -j ACCEPT
+    # iRODS data transfer (CyVerse Data Store)
+    iptables -A OUTPUT -p tcp --dport 1247 -j ACCEPT
+    iptables -A OUTPUT -p tcp --dport 20000:20199 -j ACCEPT
+    # Drop everything else
+    iptables -A OUTPUT -j DROP
+    echo "[FIREWALL] Rules active: loopback + DNS + iRODS only"
+else
+    echo "[FIREWALL] CAP_NET_ADMIN not available -- relying on orchestrator network policy"
+fi
+
 # Inject IPLANT_USER into the KasmVNC watermark template
+# Copy defaults to user-writable location, modify there
+cp /usr/share/kasmvnc/kasmvnc_defaults.yaml /tmp/kasmvnc_defaults.yaml
 if [ -n "$IPLANT_USER" ]; then
-    sed -i "s/\${USER}/${IPLANT_USER}/g" /usr/share/kasmvnc/kasmvnc_defaults.yaml
+    sed -i "s/\${USER}/${IPLANT_USER}/g" /tmp/kasmvnc_defaults.yaml
     echo "Watermark user: $IPLANT_USER"
 else
     echo "WARNING: IPLANT_USER not set, watermark will show 'unknown'"
-    sed -i "s/\${USER}/unknown/g" /usr/share/kasmvnc/kasmvnc_defaults.yaml
+    sed -i "s/\${USER}/unknown/g" /tmp/kasmvnc_defaults.yaml
 fi
+cp /tmp/kasmvnc_defaults.yaml /usr/share/kasmvnc/kasmvnc_defaults.yaml 2>/dev/null || true
+# Also write as user-level override
+mkdir -p ${HOME}/.vnc
+cp /tmp/kasmvnc_defaults.yaml ${HOME}/.vnc/kasmvnc.yaml
 
 no_proxy="localhost,127.0.0.1"
 

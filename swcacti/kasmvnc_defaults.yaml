@@ -20,9 +20,9 @@ network:
     port: auto
     stun_server: auto
   ssl:
-    pem_certificate: /etc/ssl/certs/ssl-cert-snakeoil.pem
-    pem_key: /etc/ssl/private/ssl-cert-snakeoil.key
-    require_ssl: true
+    pem_certificate: /home/kasm-user/.vnc/self.pem
+    pem_key: /home/kasm-user/.vnc/self.pem
+    require_ssl: false
 
 user_session:
   new_session_disconnects_existing_exclusive_session: false
@@ -120,7 +120,7 @@ server:
     kasm_password_file: ${HOME}/.kasmpasswd
     x_authority_file: auto
   auto_shutdown:
-    no_user_session_timeout: 900
+    no_user_session_timeout: 600
     active_user_session_timeout: 28800
     inactive_user_session_timeout: 900
 
