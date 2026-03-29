@@ -13,9 +13,10 @@ USER root
 RUN apt update && \
     apt install -y lsb-release apt-transport-https curl libfreetype6-dev pkg-config libx11-dev gcc less software-properties-common apt-utils glances htop nano 
 
-# Install Go
-RUN wget -q -c https://dl.google.com/go/go1.25.0.linux-amd64.tar.gz -O - | tar -xz -C /usr/local
-ENV PATH=$PATH:/usr/local/go/bin 
+# Install Go (latest stable)
+RUN GO_VERSION=$(curl -s "https://golang.org/VERSION?m=text" | head -1 | sed "s/go//") && \
+    wget -q -c https://dl.google.com/go/go${GO_VERSION}.linux-amd64.tar.gz -O - | tar -xz -C /usr/local
+ENV PATH=$PATH:/usr/local/go/bin
 
 # Install GoCommands
 RUN cd /usr/local/bin/ && \
