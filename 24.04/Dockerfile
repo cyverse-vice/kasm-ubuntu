@@ -64,8 +64,12 @@ USER kasm-user
 
 # Install AI tools (Claude Code, Gemini CLI, OpenAI Codex)
 RUN npm config set prefix /home/kasm-user/.npm-global && \
-    export PATH=/home/kasm-user/.npm-global/bin:$PATH && \
-    npm install -g @anthropic-ai/claude-code @google/gemini-cli @openai/codex
-ENV PATH="/home/kasm-user/.npm-global/bin:${PATH}"
+    npm install -g @anthropic-ai/claude-code @google/gemini-cli @openai/codex && \
+    npm cache clean --force
+
+# Install OpenCode (https://opencode.ai/)
+RUN curl -fsSL https://opencode.ai/install | bash
+
+ENV PATH="/home/kasm-user/.npm-global/bin:/home/kasm-user/.opencode/bin:${PATH}"
 
 ENTRYPOINT [ "/dockerstartup/vnc_startup.sh" ]
