@@ -68,7 +68,7 @@ RUN npm config set prefix /home/kasm-user/.npm-global && \
     npm cache clean --force
 
 # Install OpenCode (https://opencode.ai/)
-RUN curl -fsSL https://opencode.ai/install | bash
+RUN curl -fsSL https://opencode.ai/install | bash -s -- --no-modify-path
 
 ENV PATH="/home/kasm-user/.npm-global/bin:/home/kasm-user/.opencode/bin:${PATH}"
 
